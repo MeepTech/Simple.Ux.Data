@@ -45,7 +45,7 @@ namespace Simple.Ux.Data {
     /// <summary>
     /// The delegate collection key for the default dropdown options validation method
     /// </summary>
-    public const string DefaultDropdownOptionsValidationDelegateKey 
+    public const string DefaultDropdownOptionsValidationDelegateKey
       = "__defaultDropdownInOptionsValidation_";
 
     OrderedDictionary<string, object> _options;
@@ -74,18 +74,20 @@ namespace Simple.Ux.Data {
         var old = _maxValuesAllowed;
         var oldAllowed = MultiSelectAllowed;
         _maxValuesAllowed = value;
-        OnSelectableValueLimitChangeListeners.ForEach(listener => listener.Value(this, old));
+        OnSelectableValueLimitChangeListeners?.ForEach(listener => listener.Value(this, old));
       }
-    } int _maxValuesAllowed = 1;
+    }
+    int _maxValuesAllowed = 1;
 
     ///<summary><inheritdoc/></summary>
-    protected override DelegateCollection<Func<DataField, List<KeyValuePair<string, object>>, (bool success, string message)>> DefaultValidations
-      => base.DefaultValidations.Append(
+    protected override DelegateCollection<Func<DataField, List<KeyValuePair<string, object>>, (bool success, string message)>> DefaultValidations 
+      => _defaultValidations ??= base.DefaultValidations.Append(
         DefaultDropdownOptionsValidationDelegateKey,
-        (f, v) => MultiSelectAllowed 
+        (f, v) => MultiSelectAllowed
           ? _multiSelectDefaultValidationLogic(f, v)
           : _singleSelectDefaultValidationLogic(f, v)
       );
+    DelegateCollection<Func<DataField, List<KeyValuePair<string, object>>, (bool success, string message)>> _defaultValidations;
 
     public DropdownSelectField(
       string name,

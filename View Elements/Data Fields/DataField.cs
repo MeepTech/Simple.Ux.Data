@@ -31,7 +31,7 @@ namespace Simple.Ux.Data {
     /// </summary>
     public DelegateCollection<Func<DataField, View, bool>> EnabledIfCheckers {
       get => DefaultEnabledIfCheckers;
-      init => value.ForEach(DefaultEnabledIfCheckers.Add);
+      init => value?.ForEach(DefaultEnabledIfCheckers.Add);
     }
     /// <summary>
     /// Default enable if checkers added to the field.
@@ -47,7 +47,7 @@ namespace Simple.Ux.Data {
     /// </summary>
     public DelegateCollection<Func<DataField, View, bool>> HideIfCheckers {
       get => DefaultHideIfCheckers;
-      init => value.ForEach(DefaultHideIfCheckers.Add);
+      init => value?.ForEach(DefaultHideIfCheckers.Add);
     }
     /// <summary>
     /// Default hide if checkers added to the field.
@@ -245,7 +245,7 @@ namespace Simple.Ux.Data {
     /// </summary>
     public DelegateCollection<Action<DataField, TValue>> OnValueChangedListeners {
       get => DefaultOnValueChangedListeners;
-      init => value.ForEach(DefaultOnValueChangedListeners.Add);
+      init => value?.ForEach(DefaultOnValueChangedListeners.Add);
     }
     /// <summary>
     /// Default fields added to the on changed listeners on init.
@@ -262,7 +262,7 @@ namespace Simple.Ux.Data {
     /// </summary>
     public virtual DelegateCollection<Func<DataField, TValue, (bool success, string message)>> Validations {
       get => DefaultValidations;
-      init => value.ForEach(DefaultValidations.Add);
+      init => value?.ForEach(DefaultValidations.Add);
     }
     /// <summary>
     /// Default validations added to the field.
@@ -298,12 +298,15 @@ namespace Simple.Ux.Data {
     ///<summary><inheritdoc/></summary>
     protected override bool RunValidationsOn(object value, out string resultMessage) {
       resultMessage = "Value Is Valid! :D";
-      TValue convertedValue = (TValue)value;
+      TValue convertedValue;
+      try {
+        convertedValue = (TValue)value;
+      } catch (Exception e) {
+        throw new InvalidCastException($"Could not cast value's type for Field: {Name}!\n\tFrom:{value.GetType()}\n\tTo:{typeof(TValue)}\n\tValue To String:{value?.ToString() ?? "NULL"}", e.InnerException ?? e);
+      }
 
       if(Validations.Any()) {
-        foreach((bool success, string message) in Validations.Select(validator => {
-          return validator.Value(this, convertedValue);
-        })) {
+        foreach((bool success, string message) in Validations?.Select(validator => { return validator.Value(this, convertedValue); })) {
           if(!success) {
             resultMessage = string.IsNullOrWhiteSpace(message)
               ? "Value did not pass custom validation functions."
@@ -319,7 +322,6 @@ namespace Simple.Ux.Data {
     }
 
     internal override void _runOnValueChangedCallbacks(DataField updatedField, object oldValue)
-      => OnValueChangedListeners
-        .ForEach(listener => listener.Value(this, (TValue)oldValue));
+      => OnValueChangedListeners?.ForEach(listener => listener.Value(this, (TValue)oldValue));
   }
 }

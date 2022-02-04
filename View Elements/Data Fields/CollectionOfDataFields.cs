@@ -23,9 +23,7 @@ namespace Simple.Ux.Data {
     /// </summary>
     public DelegateCollection<Func<DataField, KeyValuePair<TIndividualItemIndex, object>, (bool success, string message)>> EntryValidations {
       get => DefaultEntryValidations;
-      init {
-        value.ForEach(DefaultEntryValidations.Add);
-      }
+      init => value?.ForEach(DefaultEntryValidations.Add);
     } 
     
     /// <summary>

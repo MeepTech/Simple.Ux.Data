@@ -24,7 +24,7 @@ namespace Simple.Ux.Data {
     }
 
     protected override DelegateCollection<Func<DataField, double, (bool success, string message)>> DefaultValidations 
-      => base.DefaultValidations.Append("__defaultSliderWithinRangeValidator_", (f, v) => {
+      => _defaultValidations ??= base.DefaultValidations.Append("__defaultSliderWithinRangeValidator_", (f, v) => {
         bool r = v >= (ValidRange.min - 0.001f) && v <= (ValidRange.max + 0.001f);
         if(r) {
           return (true, null);
@@ -32,6 +32,7 @@ namespace Simple.Ux.Data {
           return (false, $"Value: {v}, is outside of valid range: {(ValidRange.min - 0.001f)} to {(ValidRange.max + 0.001f)}");
         }
       });
+    DelegateCollection<Func<DataField, double, (bool success, string message)>> _defaultValidations;
 
     public RangeSliderField(
       string name,

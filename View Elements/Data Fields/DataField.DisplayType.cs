@@ -50,8 +50,8 @@ namespace Simple.Ux.Data {
           ) {
             EnabledIfCheckers = enabledIf,
             HideIfCheckers = hiddenIf,
-            Validations = validations.ReDelegate(func => func.CastMiddleType<object, string>()),
-            OnValueChangedListeners = onValueChanged.ReDelegate(func => func.CastEndType<object, string>())
+            Validations = validations?.ReDelegate(func => func.CastMiddleType<object, string>()),
+            OnValueChangedListeners = onValueChanged?.ReDelegate(func => func.CastEndType<object, string>())
           };
       });
 
@@ -83,8 +83,8 @@ namespace Simple.Ux.Data {
          ) {
            EnabledIfCheckers = enabledIf,
            HideIfCheckers = hiddenIf,
-           Validations = validations.ReDelegate(func => func.CastMiddleType<object, bool>()),
-           OnValueChangedListeners = onValueChanged.ReDelegate(func => func.CastEndType<object, bool>())
+           Validations = validations?.ReDelegate(func => func.CastMiddleType<object, bool>()),
+           OnValueChangedListeners = onValueChanged?.ReDelegate(func => func.CastEndType<object, bool>())
          };
        });
 
@@ -132,8 +132,8 @@ namespace Simple.Ux.Data {
          ) {
            EnabledIfCheckers = enabledIf,
            HideIfCheckers = hiddenIf,
-           Validations = validations.ReDelegate(func => func.CastMiddleType<object, double>()),
-           OnValueChangedListeners = onValueChanged.ReDelegate(func => func.CastEndType<object, double>())
+           Validations = validations?.ReDelegate(func => func.CastMiddleType<object, double>()),
+           OnValueChangedListeners = onValueChanged?.ReDelegate(func => func.CastEndType<object, double>())
          };
        });
 
@@ -170,8 +170,8 @@ namespace Simple.Ux.Data {
          ) {
            EnabledIfCheckers = enabledIf,
            HideIfCheckers = hiddenIf,
-           Validations = validations.ReDelegate(func => func.CastMiddleType<object, List<KeyValuePair<string, object>>>()),
-           OnValueChangedListeners = onValueChanged.ReDelegate(func => func.CastEndType<object, List<KeyValuePair<string, object>>>())
+           Validations = validations?.ReDelegate(func => func.CastMiddleType<object, List<KeyValuePair<string, object>>>()),
+           OnValueChangedListeners = onValueChanged?.ReDelegate(func => func.CastEndType<object, List<KeyValuePair<string, object>>>())
          };
        });
 
@@ -222,8 +222,8 @@ namespace Simple.Ux.Data {
           ) {
            EnabledIfCheckers = enabledIf,
            HideIfCheckers = hiddenIf,
-           EntryValidations = validations.ReDelegate(func => func.CastMiddleType<object, KeyValuePair<string, object>>()),
-           OnValueChangedListeners = onValueChanged.ReDelegate(func => func.CastEndType<object, OrderedDictionary<string, object>>())
+           EntryValidations = validations?.ReDelegate(func => func.CastMiddleType<object, KeyValuePair<string, object>>()),
+           OnValueChangedListeners = onValueChanged?.ReDelegate(func => func.CastEndType<object, OrderedDictionary<string, object>>())
          };
        });
 
@@ -254,7 +254,7 @@ namespace Simple.Ux.Data {
         : base(nameId) {
         _defaultFieldConstructor = defaultFieldConstructor;
         if(defaultFieldTypes is not null) {
-          defaultFieldTypes.ForEach(defaultFieldType => _byDefaultFieldTypes.Add(defaultFieldType, this));
+          defaultFieldTypes?.ForEach(defaultFieldType => _byDefaultFieldTypes.Add(defaultFieldType, this));
         }
       }
 
