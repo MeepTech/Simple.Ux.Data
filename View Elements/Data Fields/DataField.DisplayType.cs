@@ -13,7 +13,8 @@ namespace Simple.Ux.Data {
     /// </summary>
     public class DisplayType : Meep.Tech.Data.Enumeration<DisplayType> {
       internal readonly DefaultFieldConstructor _defaultFieldConstructor;
-      internal static readonly Dictionary<System.Type, DisplayType> _byDefaultFieldTypes;
+      internal static readonly Dictionary<System.Type, DisplayType> _byDefaultFieldTypes
+        = new();
 
       /// <summary>
       /// A text field
@@ -254,7 +255,13 @@ namespace Simple.Ux.Data {
         : base(nameId) {
         _defaultFieldConstructor = defaultFieldConstructor;
         if(defaultFieldTypes is not null) {
-          defaultFieldTypes?.ForEach(defaultFieldType => _byDefaultFieldTypes.Add(defaultFieldType, this));
+          defaultFieldTypes?.ForEach(defaultFieldType => {
+            try {
+              _byDefaultFieldTypes.Add(defaultFieldType, this);
+            } catch (ArgumentException e) {
+              throw new ArgumentException($"The Default Field Type: {defaultFieldType} is already taken by SimpleUx Field: {_byDefaultFieldTypes[defaultFieldType]}", e);
+            }
+          });
         }
       }
 

@@ -105,7 +105,7 @@ namespace Simple.Ux.Data {
     /// try to get a field by key
     /// </summary>
     public DataField TryToGetField(string key)
-      => _fields.TryGetValue(key.ToLower(), out var value)
+      => key is null ? null : _fields.TryGetValue(key.ToLower(), out var value)
        ? value
        : null;
 
@@ -113,7 +113,7 @@ namespace Simple.Ux.Data {
     /// try to get a field by key
     /// </summary>
     public bool TryToGetField(string key, out DataField field)
-      => _fields.TryGetValue(key.ToLower(), out field);
+      => _fields.TryGetValue(key?.ToLower() ?? "__noKey_", out field);
 
     /// <summary>
     /// Get a field by key

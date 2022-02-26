@@ -11,18 +11,65 @@ namespace Simple.Ux.Data {
   public abstract partial class DataField : IUxViewElement {
 
     /// <summary>
-    /// The view this field is in.
+    /// The name of the field.
+    /// Used as a default data key
     /// </summary>
-    public View View {
+    public virtual string Name {
+      get;
+    }
+
+    /// <summary>
+    /// Data key for the field.
+    /// Used to access it from the editor component display data.
+    /// </summary>
+    public virtual string DataKey {
+      get;
+    }
+
+    /// <summary>
+    /// Info tooltip for the field
+    /// </summary>
+    public virtual string Tooltip {
+      get;
+    } = null;
+
+    /// <summary>
+    /// The current value of the field.
+    /// </summary>
+    public object Value {
       get;
       internal set;
     }
+
+    /// <summary>
+    /// The default initial value.
+    /// </summary>
+    public object DefaultValue {
+      get;
+      internal set;
+    }
+
+    /// <summary>
+    /// If this field is readonly
+    /// </summary>
+    public virtual bool IsReadOnly {
+      get;
+      internal set;
+    } = false;
 
     /// <summary>
     /// The type of display this field should use.
     /// </summary>
     public DisplayType Type {
       get;
+    }
+
+    /// <summary>
+    /// The view this field is in.
+    /// </summary>
+    public View View {
+      get;
+      internal set;
     }
 
     /// <summary>
@@ -58,53 +105,46 @@ namespace Simple.Ux.Data {
     } = new();
 
     /// <summary>
-    /// The current value of the field.
+    /// If this field should be enabled for editing.
     /// </summary>
-    public object Value {
-      get;
-      internal set;
+    public bool IsEnabled {
+      get {
+        if(_overrideIsEnabledCheckers) {
+          return _isEnabledOverride.Value;
+        } else if(EnabledIfCheckers is not null && EnabledIfCheckers.Any(checker => !checker.Value(this, View))) {
+          return false;
+        }
+
+        return _isEnabledOverride ?? true;
+      }
     }
 
     /// <summary>
-    /// The default initial value.
+    /// If this field should be hidden to the current view
     /// </summary>
-    public object DefaultValue {
-      get;
-      internal set;
+    public bool IsHidden {
+      get {
+        if(_overrideIsHiddenCheckers) {
+          return _isHiddenOverride.Value;
+        } else if(HideIfCheckers is not null && HideIfCheckers.Any(checker => checker.Value(this, View))) {
+          return true;
+        }
+
+        return _isHiddenOverride ?? false;
+      }
     }
 
     /// <summary>
-    /// If this field is readonly
+    /// If this field should be tracked by it's view
     /// </summary>
-    public virtual bool IsReadOnly {
-      get;
-      internal set;
-    } = false;
-
-    /// <summary>
-    /// The name of the field.
-    /// Used as a default data key
-    /// </summary>
-    public virtual string Name {
-      get;
-    }
-
-    /// <summary>
-    /// Data key for the field.
-    /// Used to access it from the editor component display data.
-    /// </summary>
-    public virtual string DataKey {
-      get;
-    }
-
-    /// <summary>
-    /// Info tooltip for the field
-    /// </summary>
-    public virtual string Tooltip {
-      get;
-    } = null;
+    public bool ShouldBeTrackedByView
+      => (!IsReadOnly || !string.IsNullOrWhiteSpace(DataKey));
 
     internal DataField _controllerField;
+    internal bool? _isEnabledOverride = null;
+    internal bool? _isHiddenOverride = null;
+    internal bool _overrideIsEnabledCheckers = false;
+    internal bool _overrideIsHiddenCheckers = false;
 
     /// <summary>
     /// Make a new data field for a Simple Ux.
@@ -159,7 +199,7 @@ namespace Simple.Ux.Data {
             return false;
           }
         }
-      } else if(!RunValidationsOn(value, out resultMessage)) {
+      } else if(!Validate(value, out resultMessage)) {
         return false;
       }
 
@@ -172,7 +212,7 @@ namespace Simple.Ux.Data {
     /// <summary>
     /// Used to run validations on the given value.
     /// </summary>
-    protected abstract bool RunValidationsOn(object value, out string resultMessage);
+    protected abstract bool Validate(object value, out string resultMessage);
     internal abstract void _runOnValueChangedCallbacks(DataField updatedField, object oldValue);
 
     /// <summary>
@@ -187,6 +227,80 @@ namespace Simple.Ux.Data {
       newField.DefaultEnabledIfCheckers = new(DefaultEnabledIfCheckers);
 
       return newField;
+    }
+
+    /// <summary>
+    /// Manually sets the field to show as enabled.
+    /// </summary>
+    public void Enable(bool overrideCheckers = false) {
+      _overrideIsEnabledCheckers = overrideCheckers;
+      _isEnabledOverride = true;
+      _runOnValueChangedCallbacks(this, Value);
+    }
+
+    /// <summary>
+    /// Manually sets the field to show as disabled.
+    /// </summary>
+    public void Disable(bool overrideCheckers = false) {
+      _overrideIsEnabledCheckers = overrideCheckers;
+      _isEnabledOverride = false;
+      _runOnValueChangedCallbacks(this, Value);
+    }
+
+    /// <summary>
+    /// Used to toggle this field enabled or disabled manually.
+    /// Can be used with or without the current checker delegates in EnabledIfCheckers.
+    /// </summary>
+    public void SetEnabled(bool setIsEnabledToTrue = true, bool overrideCheckers = false) {
+      if(setIsEnabledToTrue)
+        Enable(overrideCheckers);
+      else
+        Disable(overrideCheckers);
+    }
+
+    /// <summary>
+    /// Reset the is-enabled state to use just the EnabledIfCheckers, and no manually set value
+    /// </summary>
+    public void ResetIsEnabled() {
+      _overrideIsEnabledCheckers = false;
+      _isEnabledOverride = null;
+      _runOnValueChangedCallbacks(this, Value);
+    }
+
+    /// <summary>
+    /// Manually set this field to unhidden.
+    /// </summary>
+    public void Hide(bool overrideCheckers = false) {
+      _overrideIsHiddenCheckers = overrideCheckers;
+      _runOnValueChangedCallbacks(this, Value);
+    }
+
+    /// <summary>
+    /// Manually set this field to hidden.
+    /// </summary>
+    public void UnHide(bool overrideCheckers = false) {
+      _overrideIsHiddenCheckers = overrideCheckers;
+      _runOnValueChangedCallbacks(this, Value);
+    }
+
+    /// <summary>
+    /// Used to toggle this field hidden or visible manually.
+    /// Can be used with or without the current checker delegates in HiddenIfCheckers.
+    /// </summary>
+    public void SetHidden(bool setIsHiddenToTrue = true, bool overrideCheckers = false) {
+      if(setIsHiddenToTrue)
+        Enable(overrideCheckers);
+      else
+        Disable(overrideCheckers);
+    }
+
+    /// <summary>
+    /// Reset the is-hidden state to use just the HiddenIfCheckers, and no manually set value
+    /// </summary>
+    public void ResetIsHidden() {
+      _overrideIsHiddenCheckers = false;
+      _isHiddenOverride = null;
+      _runOnValueChangedCallbacks(this, Value);
     }
 
     /// <summary>
@@ -232,6 +346,11 @@ namespace Simple.Ux.Data {
       DelegateCollection<Action<DataField, object>> onValueChanged = null,
       Dictionary<Type, Attribute> attributes = null
     ) => type._defaultFieldConstructor(title, tooltip, value, isReadOnly, dataKey, enabledIf, hiddenIf, validations, onValueChanged, attributes);
+
+    /// <summary>
+    /// Generic function for adding a value change listener without knowing the type.
+    /// </summary>
+    public abstract void AddValueChangeListener(string listenerKey, Action<DataField, object> onValueChanged);
   }
 
   /// <summary>
@@ -296,7 +415,11 @@ namespace Simple.Ux.Data {
     }
 
     ///<summary><inheritdoc/></summary>
-    protected override bool RunValidationsOn(object value, out string resultMessage) {
+    public override void AddValueChangeListener(string listenerKey, Action<DataField, object> onValueChanged)
+      => OnValueChangedListeners.Add(listenerKey, (f, o) => onValueChanged(f, o));
+
+    ///<summary><inheritdoc/></summary>
+    protected override bool Validate(object value, out string resultMessage) {
       resultMessage = "Value Is Valid! :D";
       TValue convertedValue;
       try {

@@ -55,7 +55,7 @@ namespace Simple.Ux.Data {
       object oldValue = this[key];
       try {
         this[key] = newValue;
-        if(!RunValidationsOn(Value, out resultMessage)) {
+        if(!Validate(Value, out resultMessage)) {
           this[key] = oldValue;
           return false;
         }

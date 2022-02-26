@@ -8,12 +8,12 @@ namespace Simple.Ux.Data {
   public class RangeSliderAttribute : Attribute {
     internal float _min;
     internal float _max;
-    internal bool? _isClampedToInt;
+    internal bool _isClampedToInt;
 
-    public RangeSliderAttribute(float min, float max, bool? clampToIntegers = null) {
+    public RangeSliderAttribute(float min, float max, bool ClampToIntegers = false) {
       _min = min;
       _max = max;
-      _isClampedToInt = clampToIntegers;
+      _isClampedToInt = ClampToIntegers;
     }
   }
 }

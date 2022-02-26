@@ -38,6 +38,24 @@ namespace Simple.Ux.Data {
     }
 
     /// <summary>
+    /// How many entries have been added to the current column
+    /// </summary>
+    public int FieldCountForCurrentColumn
+      => _currentColumnEntries?.Count ?? 0;
+
+    /// <summary>
+    /// How many columns have been added to the current pannel
+    /// </summary>
+    public int ColumnCountForCurrentPannel
+      => _currentPannelColumns?.Count ?? 0;
+
+    /// <summary>
+    /// How many finished pannels have been added to the current builder
+    /// </summary>
+    public int FinishedPannelCountForCurrentBuilder
+      => _compiledPannels?.Count ?? 0;
+
+    /// <summary>
     /// Make a new simple Overworld Ux builder.
     /// </summary>
     public ViewBuilder(string mainTitle) {
@@ -88,6 +106,37 @@ namespace Simple.Ux.Data {
     }
 
     /// <summary>
+    /// Add a custom made element to the current column
+    /// </summary>
+    public ViewBuilder AddCustomElement(IUxViewElement customElement) {
+      if(customElement is DataField) {
+        throw new ArgumentException($"Cannot add Field of Type:{customElement.GetType()}, to Builder using AddCustomElement. For adding data fields to a Simple Ux View Builder, use AddField.");
+      }
+      if(customElement is Column) {
+        throw new ArgumentException($"Cannot add a column  to Builder using AddCustomElement. For adding columns to a Simple Ux View Builder, use AddColumn.");
+      }
+      if(customElement is Pannel) {
+        throw new ArgumentException($"Cannot add a pannel to Builder using AddCustomElement. For adding a pannel to a Simple Ux View Builder, use AddPannel.");
+      }
+      if(customElement is Row) {
+        throw new ArgumentException($"Cannot add a row to Builder using AddCustomElement. For adding rows fields to a Simple Ux View Builder, use AddRow.");
+      }
+      if(customElement is Title) {
+        throw new ArgumentException($"Cannot add a Title to Builder using AddCustomElement. For adding Titles and Headers to a Simple Ux View Builder, use one of the Add Header or Set Header methods that suits your needs.");
+      }
+      if(customElement is Pannel.Tab) {
+        throw new ArgumentException($"Cannot add Pannel Tab to Builder using AddCustomElement. For changing the Current Pannel Tab Data, see SetCurrentPannelTab. You can also add a pannel tab when adding a new pannel");
+      }
+      if(customElement is EmptySpacer) {
+        throw new ArgumentException($"Cannot add a spacer to Builder using AddCustomElement. For changing the Current Pannel Tab Data, see AddEmptySpacer.");
+      }
+
+      _addElementToCurrentPannel(customElement);
+
+      return this;
+    }
+
+    /// <summary>
     /// Add a data field.
     /// </summary>
     public ViewBuilder AddField(DataField field) {
@@ -101,6 +150,15 @@ namespace Simple.Ux.Data {
     /// </summary>
     public ViewBuilder AddHeader(Title inColumnHeader) {
       _addElementToCurrentPannel(inColumnHeader);
+
+      return this;
+    }
+
+    /// <summary>
+    /// Add an empty row with min height (about the height of a header)
+    /// </summary>
+    public ViewBuilder AddEmptySpacer() {
+      _addElementToCurrentPannel(new EmptySpacer() { View = _view });
 
       return this;
     }
@@ -309,8 +367,10 @@ namespace Simple.Ux.Data {
 
     Column _buildColumn() {
       try {
+        // compile all the fields in the column:
         _fieldsByKey = _fieldsByKey
           .Merge(_currentColumnEntries._getExpandedFieldsByKey());
+        _fieldsByKey.ForEach(field => field.Value.View = _view);
 
         Column col = new(_currentColumnEntries, CurrentColumnLabel) {
           View = _view
@@ -464,7 +524,7 @@ namespace Simple.Ux.Data {
         }
 
         isIntClamped ??= fieldType == typeof(int);
-        rangeSliderData ??= new RangeSliderAttribute(0, isIntClamped.Value ? 100 : 1, isIntClamped);
+        rangeSliderData ??= new RangeSliderAttribute(0, isIntClamped.Value ? 100 : 1, isIntClamped ?? false);
 
         Func<DataField, object, bool> numericValidation = isIntClamped.Value
               ? (field, value) => int.TryParse(value as string, out int val) && (rangeValidation?.Invoke(val) ?? true)
@@ -533,12 +593,11 @@ namespace Simple.Ux.Data {
             : entry._getExpandedFieldsByKey()
         ).ToDictionary(entry => entry.DataKey.ToLower());
 
-    static IEnumerable<DataField> _getExpandedFieldsByKey(this IUxViewElement entry) {
-      return entry is Row row
+    static IEnumerable<DataField> _getExpandedFieldsByKey(this IUxViewElement entry) 
+      => entry is Row row
         ? row
-        : entry is DataField field && !field.IsReadOnly
+        : entry is DataField field && field.ShouldBeTrackedByView
           ? new[] { field }
           : Enumerable.Empty<DataField>();
-    }
   }
 }
