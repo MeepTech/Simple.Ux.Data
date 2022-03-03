@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ECSBAM\Meep.Tech.Data\Meep.Tech.Data.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.dll&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld\Assets\Packages\SimpleUx\Data\&quot; /y" />
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.pdb&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld\Assets\Packages\SimpleUx\Data\&quot; /y" />
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.deps.json&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld\Assets\Packages\SimpleUx\Data\&quot; /y" />
+	  
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.dll&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld Launcher\Assets\Packages\SimpleUx\Data\&quot; /y" />
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.pdb&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld Launcher\Assets\Packages\SimpleUx\Data\&quot; /y" />
+    <Exec Command="xcopy &quot;bin\Debug\netstandard2.1\Simple.Ux.Data.deps.json&quot; &quot;..\..\..\..\..\..\apps\unity\Overworld Launcher\Assets\Packages\SimpleUx\Data\&quot; /y" />
+  </Target>
+
+</Project>
